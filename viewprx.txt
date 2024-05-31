@@ -164,7 +164,7 @@ def send(__device_id, __install_id, cdid, openudid):
             try:
                 if response.json()['status_code'] == 0:
                     _lock.acquire()
-                    print(Colorate.Horizontal(Colors.green_to_blue, f'[Nam~Tool]| BUFF VIEW THÀNH CÔNG: {success} views'))
+                    print(Colorate.Horizontal(Colors.green_to_blue, f'[vLongzZ]| BUFF VIEW THÀNH CÔNG: {success} views'))
                     success += 1
                     _lock.release()
             except:
