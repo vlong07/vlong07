@@ -1,0 +1,52 @@
+import requests
+import time
+
+# Prompt the user to input the token
+token = input('nhập token: ')
+
+# Infinite loop to continuously send requests
+while True:
+    # Define headers with authorization and other necessary information
+    headers = {
+        'Host': 'api.hamsterkombat.io',
+        'Origin': 'https://hamsterkombat.io',
+        'Referer': 'https://hamsterkombat.io/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        'Authorization': f'Bearer {token}'
+    }
+
+    # Define the payload with the required data
+    data = {
+        'count': 1,
+        'availableTaps': 1500,
+        'timestamp': int(time.time() * 1000)  # Current time in milliseconds
+    }
+
+    try:
+        # Send POST request and parse the response
+        response = requests.post(
+            'https://api.hamsterkombat.io/clicker/tap', json=data, headers=headers, timeout=10
+        ).json()
+        
+        # Extract user data from the response
+        data = response['clickerUser']
+        id = data['id']
+        totalcoins = data['totalCoins']
+        balanceCoins = data['balanceCoins']
+        level = data['level']
+        availableTaps = data['availableTaps']
+        
+        # Print the extracted data
+        print(f'ID: {id} | TotalCoins: {totalcoins} | BalanceCoins: {balanceCoins} | Level: {level} | AvailableTaps: {availableTaps}')
+        
+    except Exception as e:
+        print(f'An error occurred: {e}')
+
+    # Wait for a second before the next request
+    time.sleep(1)
