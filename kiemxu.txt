@@ -1,36 +1,35 @@
-
-
 import requests
 import time
 import os
 from bs4 import BeautifulSoup
+from datetime import datetime
 
-# Clear console
+
 os.system("cls" if os.name == "nt" else "clear")
 
-# Initialize variables
+
 list_cookies = []
 receive_count = 0
 buy_count = 0
 count = 0
 
-# Input cookies from the user
+
 while True:
     ck = input(f'Nhập Cookie Thứ {len(list_cookies) + 1}: ')
     if ck == "":
         break
     list_cookies.append(ck)
 
-# Input delay value
+
 delay = int(input('Nhập Delay: '))
 
-# Function to make GET request and parse the response
+
 def get_info(headers):
     response = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     return soup.find_all('h3', class_='gradient-text mb-3')
 
-# Function to make POST request for the game and parse the response
+
 def draw_game(headers, data):
     response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=data)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -45,13 +44,21 @@ def draw_game(headers, data):
                     break
     return message
 
-# Function to print the countdown timer
+
+def current_time():
+    return datetime.now().strftime('%H:%M')
+
+
+def mask_name(name):
+    return name[:-3] + '...'
+
+
 def countdown(delay):
     for i in range(delay, 0, -1):
         print(f'Làm Nhiệm Vụ Tiếp Theo Sau {i} Giây', end='\r')
         time.sleep(1)
 
-# Main infinite loop
+
 while True:
     for cookie in list_cookies:
         headers = {
@@ -71,6 +78,7 @@ while True:
             if getinfo:
                 try:
                     name = getinfo[0].text.strip().split('của')[1].replace('💅', '').strip()
+                    masked_name = mask_name(name)
                     coin = getinfo[1].text.strip().split(':')[1].replace('💗', '').strip()
                 except IndexError:
                     print("Lỗi khi phân tích thông tin tài khoản.")
@@ -78,8 +86,8 @@ while True:
                 
                 message = draw_game(headers, data)
                 if message:
-                    print(f'Rút thành công {message}')
-                
+                    print(f'Thời Gian [{current_time()}] | Rút thành công [{message}] |{masked_name}| Tổng: {coin}')
+
                 receive_count += 1
                 count += 1
 
@@ -91,7 +99,7 @@ while True:
                     buy_count += 1
 
                 if receive_count == 10 and buy_count == 1:
-                    # Rotate cookie list
+
                     list_cookies = list_cookies[1:] + list_cookies[:1]
                     count = 0
                     receive_count = 0
