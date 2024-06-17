@@ -26,7 +26,7 @@ while True:
                 'Sec-Ch-Ua-Mobile': '?0',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
             }
-            data = {'draw': 'Rút'}
+            data = {'draw': 'Rút Ngay!'}
             infoacc = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers).text
             getdulieu = BeautifulSoup(infoacc, 'html.parser')
             getinfo = getdulieu.find_all('h3', class_='gradient-text mb-3')
