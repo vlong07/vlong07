@@ -1,63 +1,53 @@
 import requests
-import time
 import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 
 
 os.system("cls" if os.name == "nt" else "clear")
-
-
+def banner():
+	print(' ██╗░░░██╗██╗░░░░░░█████╗░███╗░░██╗░██████╗░')
+	print(' ██║░░░██║██║░░░░░██╔══██╗████╗░██║██╔════╝░')
+	print(' ╚██╗░██╔╝██║░░░░░██║░░██║██╔██╗██║██║░░██╗░')
+	print(' ░╚████╔╝░██║░░░░░██║░░██║██║╚████║██║░░╚██╗')
+	print(' ░░╚██╔╝░░███████╗╚█████╔╝██║░╚███║╚██████╔╝')
+	print(' ░░░╚═╝░░░╚══════╝░╚════╝░╚═╝░░╚══╝░╚═════╝░')
 list_cookies = []
 receive_count = 0
 buy_count = 0
 count = 0
-
-
+banner()
 while True:
     ck = input(f'Nhập Cookie Thứ {len(list_cookies) + 1}: ')
     if ck == "":
         break
     list_cookies.append(ck)
 
-
-delay = int(input('Nhập Delay: '))
-
-
 def get_info(headers):
     response = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     return soup.find_all('h3', class_='gradient-text mb-3')
 
-
-def draw_game(headers, data):
-    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=data)
+def draw_game(headers):
+    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data={'draw': 'Rút Ngay !'})
     soup = BeautifulSoup(response.text, 'html.parser')
     result_div = soup.find('div', class_='result mt-4')
     message = None
     if result_div:
-        scripts = result_div.find_all('script')
-        if scripts:
-            for script in scripts:
-                if 'cuteToast' in script.text:
-                    message = script.text.split("message: '")[1].split("'")[0].strip()
-                    break
+        alert_div = result_div.find('div', class_='alert alert-success alert-dismissible fade show')
+        if alert_div:
+            message = alert_div.text.strip().split("\n")[0].strip()
     return message
 
+def buy_draws(headers):
+    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data={'buy_draws': 'Mua 55 lượt với 1k2 xu'})
+    return response.status_code == 200
 
 def current_time():
     return datetime.now().strftime('%H:%M')
 
-
 def mask_name(name):
     return name[:-3] + '...'
-
-
-def countdown(delay):
-    for i in range(delay, 0, -1):
-        print(f'Làm Nhiệm Vụ Tiếp Theo Sau {i} Giây', end='\r')
-        time.sleep(1)
-
 
 while True:
     for cookie in list_cookies:
@@ -71,7 +61,6 @@ while True:
             'Sec-Ch-Ua-Mobile': '?0',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
         }
-        data = {'draw': 'Rút Ngay !'}
         
         while True:
             getinfo = get_info(headers)
@@ -84,30 +73,24 @@ while True:
                     print("Lỗi khi phân tích thông tin tài khoản.")
                     break
                 
-                message = draw_game(headers, data)
+                message = draw_game(headers)
                 if message:
-                    print(f'Thời Gian [{current_time()}] | Rút thành công [{message}] |{masked_name}| Tổng: {coin}')
+                    print(f'[{current_time()}] | Rút thành công [{message}] |{masked_name}| Tổng: {coin}')
 
                 receive_count += 1
                 count += 1
 
                 if receive_count == 10 and buy_count == 0:
-                    datas = {'buy_draws': 'Mua 55 lượt với 1k2 xu'}
-                    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=datas)
-                    if response.status_code == 200:
+                    if buy_draws(headers):
                         print("Mua lượt thành công.")
                     buy_count += 1
 
                 if receive_count == 10 and buy_count == 1:
-
                     list_cookies = list_cookies[1:] + list_cookies[:1]
                     count = 0
                     receive_count = 0
                     buy_count = 0
                     break
-
-                if delay > 0:
-                    countdown(delay)
             else:
                 print("Không tìm thấy thông tin tài khoản.")
                 break
