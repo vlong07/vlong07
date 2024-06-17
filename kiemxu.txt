@@ -1,66 +1,105 @@
-import requests, time, os, random
+# -*- coding: utf-8 -*-
+
+import requests
+import time
+import os
 from bs4 import BeautifulSoup
 
+# Clear console
 os.system("cls" if os.name == "nt" else "clear")
+
+# Initialize variables
 list_cookies = []
 receive_count = 0
 buy_count = 0
 count = 0
-for i in range(99999):
-    ck = str(input(f'Nhập Cookie Thứ {i+1}: '))
+
+# Input cookies from the user
+while True:
+    ck = input(f'Nhập Cookie Thứ {len(list_cookies) + 1}: ')
     if ck == "":
         break
-    else:
-        list_cookies.append(ck)
+    list_cookies.append(ck)
+
+# Input delay value
 delay = int(input('Nhập Delay: '))
+
+# Function to make GET request and parse the response
+def get_info(headers):
+    response = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    return soup.find_all('h3', class_='gradient-text mb-3')
+
+# Function to make POST request for the game and parse the response
+def draw_game(headers, data):
+    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=data)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    result_div = soup.find('div', class_='result mt-4')
+    message = None
+    if result_div:
+        scripts = result_div.find_all('script')
+        if scripts:
+            for script in scripts:
+                if 'cuteToast' in script.text:
+                    message = script.text.split("message: '")[1].split("'")[0].strip()
+                    break
+    return message
+
+# Function to print the countdown timer
+def countdown(delay):
+    for i in range(delay, 0, -1):
+        print(f'Làm Nhiệm Vụ Tiếp Theo Sau {i} Giây', end='\r')
+        time.sleep(1)
+
+# Main infinite loop
 while True:
     for cookie in list_cookies:
+        headers = {
+            'authority': 'dvmxh.azdigi.blog',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+            'Cookie': cookie,
+            'Origin': 'https://dvmxh.azdigi.blog',
+            'Sec-Ch-Ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
+        data = {'draw': 'Rút Ngay !'}
+        
         while True:
-            headers = {
-                'authority': 'dvmxh.azdigi.blog',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
-                'Cookie': cookie,
-                'Origin': 'https://dvmxh.azdigi.blog',
-                'Sec-Ch-Ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-                'Sec-Ch-Ua-Mobile': '?0',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-            }
-            data = {'draw': 'Rút Ngay!'}
-            infoacc = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers).text
-            getdulieu = BeautifulSoup(infoacc, 'html.parser')
-            getinfo = getdulieu.find_all('h3', class_='gradient-text mb-3')
+            getinfo = get_info(headers)
             if getinfo:
-                name = getinfo[0].text.strip().split('của')[1].replace('💅','').strip()
-                coin = getinfo[1].text.strip().split(':')[1].replace('💗','').strip()
-                rut = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=data).text
-                getdulieu = BeautifulSoup(rut, 'html.parser')
-                response = getdulieu.find('div', class_='result mt-4')
-                scripts = response.find_all('script')
-
-                if len(scripts) >= 2:
-                    messageluot = scripts[0].text.split("message: '")[1].split("'")[0].strip()
-                    messagecoin = scripts[1].text.split("message: '")[1].split("'")[0].strip()
-                    print(f'{messageluot} | {messagecoin} | Name: {name} | Tổng có: {coin}')
-                else:
-                    print("Không tìm thấy đủ phần tử <script>")
+                try:
+                    name = getinfo[0].text.strip().split('của')[1].replace('💅', '').strip()
+                    coin = getinfo[1].text.strip().split(':')[1].replace('💗', '').strip()
+                except IndexError:
+                    print("Lỗi khi phân tích thông tin tài khoản.")
+                    break
+                
+                message = draw_game(headers, data)
+                if message:
+                    print(f'Rút thành công {message}')
+                
                 receive_count += 1
                 count += 1
+
                 if receive_count == 10 and buy_count == 0:
-                    datas = {'buy_draws': 'Mua 1 lượt với 1k2 xu'}
-                    mua = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=datas).text
-                    getdulieu = BeautifulSoup(mua, 'html.parser')
-                    response = getdulieu.find('div', class_='result mt-4')
-                    scripts = response.find_all('script')
-                    message = scripts[0].text.split("message: '")[1].split("'")[0].strip()
-                    print(message)
+                    datas = {'buy_draws': 'Mua 55 lượt với 1k2 xu'}
+                    response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data=datas)
+                    if response.status_code == 200:
+                        print("Mua lượt thành công.")
                     buy_count += 1
+
                 if receive_count == 10 and buy_count == 1:
+                    # Rotate cookie list
                     list_cookies = list_cookies[1:] + list_cookies[:1]
                     count = 0
                     receive_count = 0
                     buy_count = 0
                     break
-                for i in range(delay, 0, -1):
-                    print(f'Làm Nhiệm Vụ Tiếp Theo Sau {i} Giây', end = '\r')
-                    time.sleep(1)
+
+                if delay > 0:
+                    countdown(delay)
+            else:
+                print("Không tìm thấy thông tin tài khoản.")
+                break
