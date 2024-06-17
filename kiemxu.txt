@@ -2,9 +2,6 @@ import requests
 import os
 from bs4 import BeautifulSoup
 from datetime import datetime
-
-
-os.system("cls" if os.name == "nt" else "clear")
 def banner():
 	print(' ██╗░░░██╗██╗░░░░░░█████╗░███╗░░██╗░██████╗░')
 	print(' ██║░░░██║██║░░░░░██╔══██╗████╗░██║██╔════╝░')
@@ -12,6 +9,8 @@ def banner():
 	print(' ░╚████╔╝░██║░░░░░██║░░██║██║╚████║██║░░╚██╗')
 	print(' ░░╚██╔╝░░███████╗╚█████╔╝██║░╚███║╚██████╔╝')
 	print(' ░░░╚═╝░░░╚══════╝░╚════╝░╚═╝░░╚══╝░╚═════╝░')
+os.system("cls" if os.name == "nt" else "clear")
+
 list_cookies = []
 receive_count = 0
 buy_count = 0
@@ -75,17 +74,17 @@ while True:
                 
                 message = draw_game(headers)
                 if message:
-                    print(f'[{current_time()}] | Rút thành công [{message}] |{masked_name}| Tổng: {coin}')
+                    print(f'Thời Gian [{current_time()}] | Rút thành công [{message}] |{masked_name}| Tổng: {coin}')
 
                 receive_count += 1
                 count += 1
 
                 if receive_count == 10 and buy_count == 0:
                     if buy_draws(headers):
-                        print("Mua lượt thành công.")
+                        print("Hết Lượt Mua Liên Hệ lại Admin")
                     buy_count += 1
-
-                if receive_count == 10 and buy_count == 1:
+                    receive_count = 0  # Reset receive_count after buying
+                elif receive_count == 10 and buy_count == 1:
                     list_cookies = list_cookies[1:] + list_cookies[:1]
                     count = 0
                     receive_count = 0
