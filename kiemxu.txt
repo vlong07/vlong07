@@ -10,7 +10,7 @@ def banner():
     print(' ░╚████╔╝░██║░░░░░██║░░██║██║╚████║██║░░╚██╗')
     print(' ░░╚██╔╝░░███████╗╚█████╔╝██║░╚███║╚██████╔╝')
     print(' ░░░╚═╝░░░╚══════╝░╚════╝░╚═╝░░╚══╝░╚═════╝░')
-    
+
 os.system("cls" if os.name == "nt" else "clear")
 
 list_cookies = []
@@ -31,7 +31,7 @@ def get_info(headers):
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup.find_all('h3', class_='gradient-text mb-3')
     except requests.RequestException as e:
-        print(f"Lỗi : {e}")
+        print(f"Error fetching info: {e}")
         return None
 
 def draw_game(headers):
@@ -41,11 +41,11 @@ def draw_game(headers):
         soup = BeautifulSoup(response.text, 'html.parser')
         result_div = soup.find('div', class_='result mt-4')
         if result_div:
-            alert_div = result_div.find('div', class_='alert alert-success')
-            if alert_div:
-                return alert_div.text.strip()
+            alerts = result_div.find_all('div', class_='alert')
+            messages = [alert.text.strip() for alert in alerts]
+            return messages
     except requests.RequestException as e:
-        print(f"Lỗi: {e}")
+        print(f"Error drawing game: {e}")
     return None
 
 def buy_draws(headers):
@@ -54,7 +54,7 @@ def buy_draws(headers):
         response.raise_for_status()
         return True
     except requests.RequestException as e:
-        print(f"Lỗi: {e}")
+        print(f"Error buying draws: {e}")
         return False
 
 def current_time():
@@ -87,9 +87,10 @@ while True:
                     print("Lỗi khi phân tích thông tin tài khoản.")
                     break
                 
-                message = draw_game(headers)
-                if message:
-                    print(f'Thời Gian [{current_time()}] | [{message}] | {masked_name} | Tổng: {coin}')
+                messages = draw_game(headers)
+                if messages:
+                    for message in messages:
+                        print(f'Thời Gian [{current_time()}] | [{message}] | Tổng: {coin}')
 
                 receive_count += 1
 
