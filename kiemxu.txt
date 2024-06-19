@@ -31,7 +31,7 @@ def get_info(headers):
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup.find_all('h3', class_='gradient-text mb-3')
     except requests.RequestException as e:
-        print(f"Error fetching info: {e}")
+        print(f"Lỗi : {e}")
         return None
 
 def draw_game(headers):
@@ -45,7 +45,7 @@ def draw_game(headers):
             if alert_div:
                 return alert_div.text.strip()
     except requests.RequestException as e:
-        print(f"Error drawing game: {e}")
+        print(f"Lỗi: {e}")
     return None
 
 def buy_draws(headers):
@@ -54,7 +54,7 @@ def buy_draws(headers):
         response.raise_for_status()
         return True
     except requests.RequestException as e:
-        print(f"Error buying draws: {e}")
+        print(f"Lỗi: {e}")
         return False
 
 def current_time():
@@ -99,7 +99,7 @@ while True:
                     else:
                         print("Lỗi khi mua lượt rút.")
                     buy_count += 1
-                    receive_count = 0  # Reset receive_count after buying
+                    receive_count = 0  
                 elif receive_count == 10 and buy_count == 1:
                     list_cookies = list_cookies[1:] + list_cookies[:1]
                     receive_count = 0
