@@ -1,5 +1,5 @@
 #!/bin/python3
-# ENCODE BY KHANHNGUYEN9872                                 # Write your comment here! 
+# ENCODE BY KHANHNGUYEN9872                                 # Write your cohmment here! 
 # Version OBF: v2.6.2                                       # Write your comment here! 
 # Botname: @khanhnguyen9872_bot                             # Write your comment here! 
 # Username Obf: @Vlongzzzz (5723089181)                     # Write your comment here! 
