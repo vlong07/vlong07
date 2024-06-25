@@ -1,0 +1,201 @@
+import sched
+import time
+import os
+import hashlib
+import re
+import requests
+from bs4 import BeautifulSoup
+
+USER_SESSION_FILE = requests.get('https://raw.githubusercontent.com/vlong07/vlong07/main/txt.txt').text
+
+session = requests.Session()
+
+def isnumeric(value):
+    try:
+        return str(value).isnumeric()
+    except:
+        return False
+
+def check_login(cookie):
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "sec-ch-ua-mobile": "?1",
+        "sec-ch-ua-platform": "\"Android\"",
+        "upgrade-insecure-requests": "1",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-dest": "document",
+        "accept-language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "Cookie": cookie
+    }
+    try:
+        response = session.get("https://freelikesub.com", headers=headers, timeout=10)
+        response.raise_for_status()
+        response_text = response.text
+
+        if "setTimeout(function(){ location.href = '/login' },0);" in response_text:
+            return (False, None, None)
+        elif "Đăng Xuất" in response_text:
+            return (True, cookie, response_text)
+        else:
+            return (False, None, None)
+    except requests.exceptions.RequestException as e:
+        print(f"Error checking login: {e}")
+        return (False, None, None)
+
+def get_info(html):
+    soup = BeautifulSoup(html, "html.parser")
+    username_element = soup.find("h5", class_="gradient-text")
+    if username_element:
+        text_content = username_element.get_text(strip=True)
+        match = re.search(r"(\d+).*?\|\s*(\d+)", text_content)
+        if match:
+            username = match.group(1)
+            amount = match.group(2)
+        else:
+            username = "Không tìm thấy"
+            amount = "Không tìm thấy"
+    else:
+        username = "Không tìm thấy"
+        amount = "Không tìm thấy"
+    
+    return username, amount
+
+def buy_like(cookie, id_post, amount, server_order='sv4'):
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "cache-control": "max-age=0",
+        "sec-ch-ua-mobile": "?1",
+        "sec-ch-ua-platform": "\"Android\"",
+        "upgrade-insecure-requests": "1",
+        "origin": "https://freelikesub.com",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-user": "?1",
+        "sec-fetch-dest": "document",
+        "referer": "https://freelikesub.com/facebook/likev2.php",
+        "accept-language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "Cookie": cookie
+    }
+    
+    payload = {
+        "id": id_post,
+        "server_order": server_order,
+        "sl": int(amount),
+        "submit": ""
+    }
+    
+    try:
+        if int(amount) < 1 or int(amount) > 100:
+            return "Vui lòng chỉ mua từ 1 đến 100 like!"
+
+        response = session.post("https://freelikesub.com/facebook/likev2.php", headers=headers, data=payload, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error buying likes: {e}")
+        return ""
+
+def get_response(html):
+    soup = BeautifulSoup(html, "html.parser")
+    script_tag = soup.find("script", type="text/javascript")
+    js_code = script_tag.text if script_tag else ""
+    
+    pattern = r"message: \"(.*?)\""
+    
+    try:
+        match = re.search(pattern, js_code)
+        message = match.group(1)
+        return message
+    except AttributeError:
+        return "Không tìm thấy trạng thái mua like!"
+
+def load_user_sessions():
+    if os.path.exists(USER_SESSION_FILE):
+        with open(USER_SESSION_FILE, 'r') as file:
+            return set(line.strip() for line in file.readlines())
+    return set()
+
+def save_user_session(session_hash):
+    with open(USER_SESSION_FILE, 'a') as file:
+        file.write(f"{session_hash}\n")
+
+def hash_cookie(cookie):
+    return hashlib.sha256(cookie.encode()).hexdigest()
+
+def fetch_cookie_from_url(cookie_url):
+    try:
+        response = requests.get(cookie_url, timeout=10)
+        response.raise_for_status()
+        return response.text.strip()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching cookie from URL: {e}")
+        return None
+
+def change_session_file():
+    try:
+        if os.path.exists(USER_SESSION_FILE):
+            # Đổi tên file hoặc xóa file USER_SESSION_FILE tại đây
+            new_file_name = USER_SESSION_FILE + '.bak'
+            os.rename(USER_SESSION_FILE, new_file_name)
+        else:
+            print(f"")
+    except Exception as e:
+        print(f"Lỗi khi thay đổi file: {e}")
+
+def main():
+    user_sessions = load_user_sessions()
+
+    try:
+        # Lên lịch thực hiện thay đổi file vào 00h mỗi ngày
+        s = sched.scheduler(time.time, time.sleep)
+        s.enterabs(time.mktime(time.strptime(time.strftime("%Y-%m-%d 00:00:00"), "%Y-%m-%d %H:%M:%S")), 1, change_session_file)
+        s.run()
+
+        # Fetch cookie from URL
+        cookie_url = 'https://raw.githubusercontent.com/vlong07/vlong07/main/cookie.txt'
+        cookie = fetch_cookie_from_url(cookie_url)
+
+        if not cookie:
+            print("Không thể lấy được cookie từ URL.")
+            return
+
+        cookie_hash = hash_cookie(cookie)
+
+        if cookie_hash in user_sessions:
+            print("Bạn chỉ được truy cập dịch vụ một lần!")
+            return
+
+        status, cookie, content = check_login(cookie)
+        if not status:
+            print("báo admin fix ngay.")
+            return
+
+        username, amount = get_info(content)
+        print("Tool Buff Like Miễn Phí")
+        print("id.traodoisub.com")
+        
+        id_post = input("Nhập ID bài viết: ")
+        if not isnumeric(id_post):
+            print("Vui lòng nhập ID bài viết hợp lệ!")
+            return
+
+        amount_input = input("Số lượng (tối đa 100): ")
+        if not isnumeric(amount_input) or int(amount_input) < 1 or int(amount_input) > 100:
+            print("Vui lòng nhập số lượng hợp lệ (tối đa 100)!")
+            return
+
+        response = buy_like(cookie, id_post, amount_input)
+        response_message = get_response(response)
+        print(response_message)
+
+        save_user_session(cookie_hash)
+
+    except FileNotFoundError:
+        print("")
+    except Exception as e:
+        print(f"Có lỗi xảy ra: {e}")
+
+if __name__ == "__main__":
+    main()
