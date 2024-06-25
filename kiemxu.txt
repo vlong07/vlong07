@@ -1,111 +1,92 @@
-import requests
-import os
+import requests, time, os, re
 from bs4 import BeautifulSoup
-from datetime import datetime
-
-def banner():
-    print(' ██╗░░░██╗██╗░░░░░░█████╗░███╗░░██╗░██████╗░')
-    print(' ██║░░░██║██║░░░░░██╔══██╗████╗░██║██╔════╝░')
-    print(' ╚██╗░██╔╝██║░░░░░██║░░██║██╔██╗██║██║░░██╗░')
-    print(' ░╚████╔╝░██║░░░░░██║░░██║██║╚████║██║░░╚██╗')
-    print(' ░░╚██╔╝░░███████╗╚█████╔╝██║░╚███║╚██████╔╝')
-    print(' ░░░╚═╝░░░╚══════╝░╚════╝░╚═╝░░╚══╝░╚═════╝░')
-
+cookies = []
+listcookie = 0;dem = 0;count = 0
 os.system("cls" if os.name == "nt" else "clear")
-
-list_cookies = []
-receive_count = 0
-buy_count = 0
-
-banner()
+for i in range(99999):
+    ck = str(input(f'Nhập Cookie Thứ {i+1}: '))
+    if ck == "":break
+    else:cookies.append(ck)
 while True:
-    ck = input(f'Nhập Cookie Thứ {len(list_cookies) + 1}: ')
-    if ck == "":
+    if listcookie >= len(cookies):
+        print('Đổi Cookie Thành Công', '          ', end='\r')
+        listcookie = 0
+    cookie = cookies[listcookie]
+    headers = {
+        'authority': 'freelikesub.com',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+        'Cookie': cookie,
+        'Origin': 'https://freelikesub.com',
+        'Sec-Ch-Ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+    }
+    data = {
+        'draw': 'Rút Ngay !'
+    }
+    response = requests.get('https://freelikesub.com/diemdanh.php', headers=headers).text
+    getdulieu = BeautifulSoup(response, 'html.parser')
+    info = getdulieu.find_all('h3', class_='gradient-text mb-3')
+    if info:
+        name = info[0].text.strip().split('của')[1].replace('💅', '').strip()
+        coin = info[1].text.strip().split(':')[1].replace('xu 💗', '').strip()
+        user = name if len(name) <= 3 else name[:3] + '*' * (len(name) - 3)
+    else:
+        print('Lấy Thông Tin Thất Bại!')
         break
-    list_cookies.append(ck)
-
-def get_info(headers):
-    try:
-        response = requests.get('https://dvmxh.azdigi.blog/diemdanh.php', headers=headers)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        return soup.find_all('h3', class_='gradient-text mb-3')
-    except requests.RequestException as e:
-        print(f"Error fetching info: {e}")
-        return None
-
-def draw_game(headers):
-    try:
-        response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data={'draw': 'Rút Ngay !'})
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        result_div = soup.find('div', class_='result mt-4')
-        if result_div:
-            alerts = result_div.find_all('div', class_='alert')
-            messages = [alert.text.strip() for alert in alerts]
-            return messages
-    except requests.RequestException as e:
-        print(f"Error drawing game: {e}")
-    return None
-
-def buy_draws(headers):
-    try:
-        response = requests.post('https://dvmxh.azdigi.blog/game.php', headers=headers, data={'buy_draws': 'Mua 55 lượt với 1k2 xu'})
-        response.raise_for_status()
-        return True
-    except requests.RequestException as e:
-        print(f"Error buying draws: {e}")
-        return False
-
-def current_time():
-    return datetime.now().strftime('%H:%M')
-
-def mask_name(name):
-    return name[:-3] + '...'
-
-while True:
-    for cookie in list_cookies:
-        headers = {
-            'authority': 'dvmxh.azdigi.blog',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
-            'Cookie': cookie,
-            'Origin': 'https://dvmxh.azdigi.blog',
-            'Sec-Ch-Ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-            'Sec-Ch-Ua-Mobile': '?0',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-        }
-        
-        while True:
-            getinfo = get_info(headers)
-            if getinfo:
-                try:
-                    name = getinfo[0].text.strip().split('của')[1].replace('💅', '').strip()
-                    masked_name = mask_name(name)
-                    coin = getinfo[1].text.strip().split(':')[1].replace('💗', '').strip()
-                except IndexError:
-                    print("Lỗi khi phân tích thông tin tài khoản.")
-                    break
-                
-                messages = draw_game(headers)
-                if messages:
-                    for message in messages:
-                        print(f'Thời Gian [{current_time()}] | [{message}] | Tổng: {coin}')
-
-                receive_count += 1
-
-                if receive_count == 10 and buy_count == 0:
-                    if buy_draws(headers):
-                        print("Đã mua 55 lượt rút với 1k2 xu.")
+    response = requests.post('https://freelikesub.com/game.php', headers=headers, data=data).text
+    getdulieu = BeautifulSoup(response, 'html.parser')
+    dulieu = getdulieu.find('div', class_='result mt-4')
+    if dulieu:
+        thongtin = dulieu.get_text(strip=True)
+        dulieu1 = re.findall(r'\d+', thongtin)
+        if dulieu1:
+            try:
+                if len(dulieu1) >= 2:
+                    xu = dulieu1[0]
+                    luot = dulieu1[1]
+            except:luot = '0'
+            if luot == '0':
+                data = {
+                    'buy_draws': 'Mua 55 lượt với 1k2 xu'
+                }
+                response = requests.post('https://freelikesub.com/game.php', headers=headers, data=data).text
+                getdulieu = BeautifulSoup(response, 'html.parser')
+                info = getdulieu.find('div', class_='result mt-4')
+                buy = info.find('div', class_='alert alert-success alert-dismissible fade show')
+                if buy:
+                    msg = buy.text.strip().split('Thành công còn ')[1].replace('lượt rút×', '').strip()
+                    print(f'Mua Thành Công Và Còn {msg} Lượt Của Tài Khoản {user}')
+                else:
+                    print(f'Bạn Đã Đạt Tới Giới Hạn 400 Lượt Mua Và Hết Lượt Rút Rồi\nTự Reset Lại Lượt 1 Tiếng 30 Phút Nhé Tài Khoản {user}')
+                    listcookie += 1
+                    if listcookie < len(cookies):
+                        print('Đổi Cookie Thành Công', '          ', end='\r')
                     else:
-                        print("Lỗi khi mua lượt rút.")
-                    buy_count += 1
-                    receive_count = 0  
-                elif receive_count == 10 and buy_count == 1:
-                    list_cookies = list_cookies[1:] + list_cookies[:1]
-                    receive_count = 0
-                    buy_count = 0
-                    break
+                        print('Đổi Cookie Thành Công', '          ', end='\r')
+                        listcookie = 0
             else:
-                print("Không tìm thấy thông tin tài khoản.")
-                break
+                dem+= 1
+                count+= 1
+                print(f'Total: {dem} | User: {user} | Rút Thành Công Và Được {xu} Xu | Bạn Còn {luot} Lượt | Tổng Có {coin} Xu')
+                time.sleep(2)
+                if count >= 10:
+                    listcookie += 1
+                    count = 0
+                    if listcookie < len(cookies):
+                        print('Đổi Cookie Thành Công', '          ', end='\r')
+                    else:
+                        print('Đổi Cookie Thành Công', '          ', end='\r')
+                        listcookie = 0
+        else:
+            print(f'Tài Khoản {user} Đã Hết Lượt Rút')
+            listcookie += 1
+            if listcookie < len(cookies):
+                print('Đổi Cookie Thành Công', '          ', end='\r')
+            else:
+                print('Đổi Cookie Thành Công', '          ', end='\r')
+                listcookie = 0
+    else:
+        print('Có Lỗi Không Xác Định Vui Lòng Liên Hệ DHP07 Để Được Hỗ Trợ')
+        break
