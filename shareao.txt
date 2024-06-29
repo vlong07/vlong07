@@ -1,0 +1,77 @@
+import os
+import json
+import requests
+import aiohttp
+import asyncio
+import random
+import time
+from aiohttp import ClientSession
+
+# Tắt cảnh báo SSL
+import urllib3
+urllib3.disable_warnings()
+
+# Làm sạch màn hình
+os.system("cls" if os.name == "nt" else "clear")
+
+async def share_post(session: ClientSession, token: str, post_id: str, share_number: int) -> None:
+    headers = {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Content-Length': '0',
+        'Host': 'graph.facebook.com',
+    }
+    params = {
+        'link': f'https://www.facebook.com/{post_id}',
+        'published': '0',
+        'access_token': token,
+    }
+    url = 'https://graph.facebook.com/v12.0/me/feed'
+    try:
+        async with session.post(url, headers=headers, params=params) as response:
+            res = await response.json()
+            if response.status == 200:
+                print(f"{time.strftime('%H:%M:%S')} : {share_number}: Thành công: {res}")
+            else:
+                print(f"{time.strftime('%H:%M:%S')} : {share_number}: Thất bại: {res}")
+    except Exception as e:
+        print(f"{time.strftime('%H:%M:%S')} : {share_number}: Lỗi: {e}")
+
+async def main(post_id: str, tokens: list, total_shares: int, batch_size: int, delay: int) -> None:
+    async with aiohttp.ClientSession() as session:
+        for start in range(0, total_shares, batch_size):
+            end = min(start + batch_size, total_shares)
+            tasks = []
+            for share_number in range(start + 1, end + 1):
+                token = random.choice(tokens)
+                tasks.append(share_post(session, token, post_id, share_number))
+            await asyncio.gather(*tasks)
+            # Đợi giữa các batch để tránh bị block
+            await asyncio.sleep(delay)
+
+def read_tokens(file_path: str) -> list:
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"File không tìm thấy: {file_path}")
+    with open(file_path, 'r') as file:
+        return [line.strip() for line in file if line.strip()]
+
+if __name__ == "__main__":
+    banner()
+    linkpost = input("\033[1;36mNhập Link Bài Viết: ")
+    get_id_post = requests.get(f'https://scaninfo.vn/api/fb/getID.php?url={linkpost}', verify=False)
+    hihi = get_id_post.json().get('id')
+    post_id = hihi
+    token_file = input("\033[1;36mNhập File Chứa Token: ")
+    total_shares = int(input("\033[1;36mNhập Số Lần Chia Sẻ: "))
+    batch_size = int(input("\033[1;36mNhập Kích Thước Mỗi Batch (200-1000): "))
+    delay = int(input("\033[1;36mNhập Thời Gian Delay Giữa Các Batch (5): "))
+
+    # Kiểm tra giá trị delay và batch_size để đảm bảo chúng có thể giúp tránh bị block
+    if delay < 10:
+        print("Cảnh báo: Thời gian delay quá thấp có thể gây nguy cơ bị block. Đề xuất là ít nhất 10 giây.")
+    if batch_size > 10:
+        print("Cảnh báo: Kích thước batch quá lớn có thể gây nguy cơ bị block. Đề xuất là tối đa 10.")
+
+    tokens = read_tokens(token_file)
+    asyncio.run(main(post_id, tokens, total_shares, batch_size, delay))
