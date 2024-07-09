@@ -4,6 +4,8 @@ from pystyle import *
 import os
 import sys, requests
 import ssl
+def banner():
+	print('')
 import re
 import time
 import random
