@@ -166,7 +166,7 @@ def send(__device_id, __install_id, cdid, openudid):
                 if response.json()['status_code'] == 0:
                     _lock.acquire()
                     #print( 'TikTok Viewbot by HN TOOL^| success: {success} ')
-                    print(Colorate.Horizontal(Colors.green_to_blue, f'[Thanh Ngoc]| Tăng thành công: {success}'))
+                    print(Colorate.Horizontal(Colors.green_to_blue, f'[vLong zZ]| Tăng thành công: {success}'))
                     success += 1
                     _lock.release()
             except:
