@@ -21,7 +21,7 @@ def genproxy():
             with open(luu_live, "a+") as f:
                 f.write(proxy + "\n")
     def something():
-        System.Clear()
+        System.Clear(
         banner()
 
     something()
