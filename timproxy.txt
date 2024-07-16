@@ -1,6 +1,7 @@
 import requests,re
 import os,sys
 import time
+banner()
 import concurrent.futures
 from requests import session
 from colorama import Fore, Style
@@ -20,9 +21,7 @@ def genproxy():
             print(proxy)
             with open(luu_live, "a+") as f:
                 f.write(proxy + "\n")
-    def something():
-        System.Clear(
-        banner()
+        
 
 
     luu_live = input(f"{trang}Nhập File Lưu Proxy: {vang}")
