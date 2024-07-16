@@ -24,8 +24,7 @@ def genproxy():
         System.Clear(
         banner()
 
-    something()
-    something()
+
     luu_live = input(f"{trang}Nhập File Lưu Proxy: {vang}")
     for i in range(3):
         url_gen = 'https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all'
