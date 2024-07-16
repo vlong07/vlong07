@@ -22,7 +22,8 @@ def genproxy():
                 f.write(proxy + "\n")
     def something():
         System.Clear()
-banner()
+        banner()
+
     something()
     something()
     luu_live = input(f"{trang}Nhập File Lưu Proxy: {vang}")
